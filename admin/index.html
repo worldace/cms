@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>管理画面</title>
+  <meta name="viewport" content="width=device-width">
+<style>
+*{
+    box-sizing: border-box;
+}
+body{
+    font-family: Verdana, 'BIZ UDPGothic', sans-serif;
+    font-feature-settings: 'palt';
+    padding: 0;
+    margin: 0;
+}
+
+
+#editor{
+    height: 100%;
+    display: grid;
+    grid-template:
+      "editor-input" 40px
+      "editor-textarea" 1fr;
+}
+#editor > div{
+    display: flex;
+    margin-bottom: 5px;
+    grid-area: editor-input;
+}
+#editor label{
+    width: 100px;
+    text-align: center;
+    line-height: 30px;
+    font-size: 16px;
+    color: #fff;
+    border: 1px solid #0077b3;
+    background-image: linear-gradient(to bottom, #0088cc, #0077b3);
+    border-radius: 5px 0 0 5px;
+    -webkit-user-select: none;
+    user-select: none;
+}
+#editor input{
+    border-radius: 0 5px 5px 0;
+    box-shadow: 5px 5px 5px rgba(200,200,200,0.2) inset;
+    border: 1px solid #888888;
+    padding: 6px 6px 3px 12px;
+    font-size: 14px;
+    flex: 1;
+}
+#editor textarea{
+    border-radius: 5px;
+    box-shadow: 5px 5px 5px rgba(200,200,200,0.2) inset;
+    border: 1px solid #888888;
+    padding: 14px 10px 5px 14px;
+    font-size: 15px;
+    grid-area: editor-textarea;
+}
+#タイトル[readonly]{
+    background-color: #eee;
+}
+
+#新規投稿ボタン{
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+}
+#更新ボタン{
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+}
+
+#ファイル一覧表 tr:hover{
+    background-color: #ffeeee;
+}
+#ファイル一覧表 span{
+    user-select: none;
+    cursor: pointer;
+}
+</style>
+</head>
+
+
+<body>
+
+
+<my-tab id="mytab">
+  <section id="記事編集" data-selected>
+    <div id="editor">
+      <div><label for="タイトル">タイトル</label><input id="タイトル"></div>
+      <textarea id="本文" spellcheck="false" placeholder="HTML"></textarea>
+    <div>
+  </section>
+  <section id="記事属性">
+    記事属性
+  </section>
+  <section id="記事一覧">
+    <table id="記事一覧表"></table>
+  </section>
+  <section id="ファイル一覧">
+    <select id="ファイル一覧月別"><option value="">ファイル一覧月別</option></select>
+    <table id="ファイル一覧表"></table>
+  </section>
+</my-tab>
+
+<button id="新規投稿ボタン">新規投稿</button><button id="更新ボタン">記事更新</button>
+
+<script type="module">
+import api from './jrpc.js'
+import('./my-tab.js')
+
+新規投稿ボタン.onclick = async function (event){
+    const data = {'タイトル':'静岡県', '本文':'空港'}
+
+    const holder1 = Object.keys(data).join()
+    const holder2 = Object.keys(data).map(key => `:${key}`).join()
+
+    const result = await api.db(`insert into マスター (${holder1}) values (${holder2})`, data)
+    console.dir(result)
+}
+
+
+更新ボタン.onclick = async function (event){
+    const data = {'タイトル':'静岡県', '本文':'温泉'}
+
+    const holder = Object.keys(data).map(key => `${key}=:${key}`).join()
+
+    const result = await api.db(`update マスター set ${holder} where タイトル = :タイトル`, data)
+    console.dir(result)
+}
+
+
+mytab.addEventListener('tabopen', async function(event){
+    if(event.detail === 2 && !記事一覧.list){
+        記事一覧.list = await api.db('select * from マスター order by 作成日時 desc')
+        記事一覧表.innerHTML = 記事一覧.list.map(記事=>`
+        <tr>
+          <td><a href="../${encodeURIComponent(記事.タイトル)}" target="_blank">${記事.タイトル}</a></td>
+        </tr>
+        `).join('')
+    }
+    else if(event.detail === 3 && !ファイル一覧月別.list){
+        ファイル一覧月別.list = await api.dir_list('/')
+        ファイル一覧月別.innerHTML += ファイル一覧月別.list.map(dir =>`<option value="${dir}">${dir.replace(/^(....)/, '$1-')}</option>`).join('')
+    }
+})
+
+
+ファイル一覧月別.onchange = async function (event){
+    if(!this.value){
+        return
+    }
+    const files = await api.file_list(this.value)
+    ファイル一覧表.innerHTML = files.map(file=>`
+    <tr data-path="${this.value}/${file}">
+      <td><a href="../upload/${this.value}/${file}" target="_blank">${file}</td>
+      <td><span>&#10006;</span></td>
+    </tr>
+    `).join('')
+}
+
+
+ファイル一覧表.onclick = function (event){
+    if(event.target.tagName !== 'SPAN'){
+        return
+    }
+    const tr = event.target.closest('tr')
+    if(confirm('このファイルを削除しますか？')){
+        console.dir(tr.dataset.path)
+    }
+}
+
+
+本文.ondrop = async function(event){
+    event.preventDefault()
+
+    for(const file of event.dataTransfer.files){
+        const url = await api.file_save(file_path(file.name), file)
+        console.dir(url)
+    }
+}
+
+
+document.body.ondragover = function(event){
+    event.preventDefault()
+}
+
+function file_path(name){
+    const d  = new Date()
+    const 年 = `${d.getFullYear()}`
+    const 月 = `0${d.getMonth()+1}`.slice(-2)
+    const 日 = `0${d.getDate()}`.slice(-2)
+    const 時 = `0${d.getHours()}`.slice(-2)
+    const 分 = `0${d.getMinutes()}`.slice(-2)
+    const 秒 = `0${d.getSeconds()}`.slice(-2)
+    const ミリ秒 = `00${d.getMilliseconds()}`.slice(-3)
+
+    const pos = name.lastIndexOf('.')
+    const ext = pos !== -1 ? name.slice(pos) : ''
+    
+    return `${年}${月}/${年}${月}${日}${時}${分}${秒}${ミリ秒}${ext}`
+}
+
+async function startup(){
+    const query = new URLSearchParams(location.search)
+    if(query.has('edit')){
+        新規投稿ボタン.remove()
+        const data = await api.db('select * from マスター where タイトル = ?', query.get('edit'));
+        タイトル.setAttribute('readonly', true)
+        タイトル.value = data[0].タイトル
+        本文.value = data[0].本文
+    }
+    else{
+        更新ボタン.remove()
+    }
+}
+
+startup()
+</script>
+
+
+</body>
+</html>
