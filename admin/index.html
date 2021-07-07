@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <title>管理画面</title>
+  <title>新規投稿</title>
   <meta name="viewport" content="width=device-width">
 <style>
 *{
@@ -56,7 +56,7 @@ body{
     font-size: 15px;
     grid-area: editor-textarea;
 }
-#タイトル[readonly]{
+#タイトル欄[readonly]{
     background-color: #eee;
 }
 
@@ -70,9 +70,12 @@ body{
     bottom: 10px;
     right: 10px;
 }
+#記事一覧表 tr:hover{
+    background-color: #eeffee;
+}
 
 #ファイル一覧表 tr:hover{
-    background-color: #ffeeee;
+    background-color: #eeffee;
 }
 #ファイル一覧表 span{
     user-select: none;
@@ -86,21 +89,23 @@ body{
 
 
 <my-tab id="mytab">
-  <section id="記事編集" data-selected>
+  <section id="編集" data-selected>
     <div id="editor">
-      <div><label for="タイトル">タイトル</label><input id="タイトル"></div>
-      <textarea id="本文" spellcheck="false" placeholder="HTML"></textarea>
+      <div><label for="タイトル欄">タイトル</label><input id="タイトル欄"></div>
+      <textarea id="本文欄" spellcheck="false" placeholder="HTML"></textarea>
     <div>
   </section>
-  <section id="記事属性">
-    記事属性
+  <section id="属性">
+    <input id="カテゴリ欄">
+    <textarea id="追加ヘッダ欄"></textarea>
+    <button id="削除ボタン">記事削除</button>
   </section>
   <section id="記事一覧">
-    <table id="記事一覧表"></table>
+    <table id="記事一覧表"><tbody></tbody></table>
   </section>
   <section id="ファイル一覧">
-    <select id="ファイル一覧月別"><option value="">ファイル一覧月別</option></select>
-    <table id="ファイル一覧表"></table>
+    <select id="ファイル一覧月別"><option value="">📅月別ファイル一覧</option></select>
+    <table id="ファイル一覧表"><tbody></tbody></table>
   </section>
 </my-tab>
 
@@ -111,32 +116,41 @@ import api from './jrpc.js'
 import('./my-tab.js')
 
 新規投稿ボタン.onclick = async function (event){
-    const data = {'タイトル':'静岡県', '本文':'空港'}
+    const タイトル   = タイトル欄.value
+    const 本文       = 本文欄.value
+    const カテゴリ   = JSON.stringify(カテゴリ欄.value.split(',').map(v=>v.trim()).filter(v=>v.length))
+    const 追加ヘッダ = 追加ヘッダ欄.value
+    
+    const data = {タイトル,本文,カテゴリ,追加ヘッダ}
 
     const holder1 = Object.keys(data).join()
     const holder2 = Object.keys(data).map(key => `:${key}`).join()
 
     const result = await api.db(`insert into マスター (${holder1}) values (${holder2})`, data)
-    console.dir(result)
 }
 
 
 更新ボタン.onclick = async function (event){
-    const data = {'タイトル':'静岡県', '本文':'温泉'}
+    const タイトル   = タイトル欄.value
+    const 本文       = 本文欄.value
+    const カテゴリ   = カテゴリ欄.value
+    const 追加ヘッダ = 追加ヘッダ欄.value
+    
+    const data = {タイトル,本文,カテゴリ,追加ヘッダ}
 
     const holder = Object.keys(data).map(key => `${key}=:${key}`).join()
 
     const result = await api.db(`update マスター set ${holder} where タイトル = :タイトル`, data)
-    console.dir(result)
 }
 
 
 mytab.addEventListener('tabopen', async function(event){
     if(event.detail === 2 && !記事一覧.list){
         記事一覧.list = await api.db('select * from マスター order by 作成日時 desc')
-        記事一覧表.innerHTML = 記事一覧.list.map(記事=>`
+        記事一覧表.tBodies[0].innerHTML = 記事一覧.list.map(記事=>`
         <tr>
           <td><a href="../${encodeURIComponent(記事.タイトル)}" target="_blank">${記事.タイトル}</a></td>
+          <td><a href="./?edit=${encodeURIComponent(記事.タイトル)}" target="_blank" title="編集">📝</a></td>
         </tr>
         `).join('')
     }
@@ -152,7 +166,7 @@ mytab.addEventListener('tabopen', async function(event){
         return
     }
     const files = await api.file_list(this.value)
-    ファイル一覧表.innerHTML = files.map(file=>`
+    ファイル一覧表.tBodies[0].innerHTML = files.map(file=>`
     <tr data-path="${this.value}/${file}">
       <td><a href="../upload/${this.value}/${file}" target="_blank">${file}</td>
       <td><span>&#10006;</span></td>
@@ -161,18 +175,20 @@ mytab.addEventListener('tabopen', async function(event){
 }
 
 
-ファイル一覧表.onclick = function (event){
+ファイル一覧表.onclick = async function (event){
     if(event.target.tagName !== 'SPAN'){
         return
     }
     const tr = event.target.closest('tr')
     if(confirm('このファイルを削除しますか？')){
-        console.dir(tr.dataset.path)
+        await api.file_delete(tr.dataset.path)
+        await tr.animate({opacity:0}, 300).finished
+        tr.remove()
     }
 }
 
 
-本文.ondrop = async function(event){
+本文欄.ondrop = async function(event){
     event.preventDefault()
 
     for(const file of event.dataTransfer.files){
@@ -202,21 +218,27 @@ function file_path(name){
     return `${年}${月}/${年}${月}${日}${時}${分}${秒}${ミリ秒}${ext}`
 }
 
-async function startup(){
+async function start(){
     const query = new URLSearchParams(location.search)
     if(query.has('edit')){
         新規投稿ボタン.remove()
-        const data = await api.db('select * from マスター where タイトル = ?', query.get('edit'));
-        タイトル.setAttribute('readonly', true)
-        タイトル.value = data[0].タイトル
-        本文.value = data[0].本文
+        const result = await api.db('select * from マスター where タイトル = ?', query.get('edit'));
+        const data   = result[0]
+        タイトル欄.setAttribute('readonly', true)
+        タイトル欄.value = data.タイトル
+        本文欄.value = data.本文
+        カテゴリ欄.value = JSON.parse(data.カテゴリ).join(',')
+        追加ヘッダ欄.value = data.追加ヘッダ
+        document.title = `「${data.タイトル}」の編集`
+        本文欄.focus()
     }
     else{
         更新ボタン.remove()
+        タイトル欄.focus()
     }
 }
 
-startup()
+start()
 </script>
 
 

@@ -59,6 +59,13 @@ class api{
         return array_values(array_filter(scandir($dir), fn($file)=>is_dir("$dir/$file") and !str_starts_with($file,'.')));
     }
 
+
+    function file_delete(string $path){
+        if(str_contains($path, '..')){
+            throw new Exception('不正なパス');
+        }
+        unlink(UPLOAD_DIR.$path);
+    }
 }
 
 
