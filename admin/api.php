@@ -12,21 +12,13 @@ class api{
         $handle = $sqlite->prepare($sql);
         $result = $handle->execute((array)$param);
 
-        if($return === 'table'){
-            return $handle->fetchAll(PDO::FETCH_OBJ);
-        }
-        else if($return === 'object'){
-            $handle->fetch(PDO::FETCH_OBJ);
-        }
-        else if($return === 'var'){
-            $handle->fetchColumn();
-        }
-        else if($return === 'array'){
-            return $handle->fetchAll(PDO::FETCH_COLUMN);
-        }
-        else{
-            return $result;
-        }
+        return match($return){
+            'table'  => $handle->fetchAll(PDO::FETCH_OBJ),
+            'object' => $handle->fetch(PDO::FETCH_OBJ),
+            'var'    => $handle->fetchColumn(),
+            'array'  => $handle->fetchAll(PDO::FETCH_COLUMN),
+            default  => $result,
+        };
     }
 
 

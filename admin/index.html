@@ -115,14 +115,19 @@ body{
 import api from './jrpc.js'
 import('./my-tab.js')
 
-新規投稿ボタン.onclick = async function (event){
+
+function 入力収集(){
     const タイトル   = タイトル欄.value
     const 本文       = 本文欄.value
     const カテゴリ   = JSON.stringify(カテゴリ欄.value.split(',').map(v=>v.trim()).filter(v=>v.length))
     const 追加ヘッダ = 追加ヘッダ欄.value
-    
-    const data = {タイトル,本文,カテゴリ,追加ヘッダ}
 
+    return {タイトル,本文,カテゴリ,追加ヘッダ}
+}
+
+
+新規投稿ボタン.onclick = async function (event){
+    const data    = 入力収集()
     const holder1 = Object.keys(data).join()
     const holder2 = Object.keys(data).map(key => `:${key}`).join()
 
@@ -131,13 +136,7 @@ import('./my-tab.js')
 
 
 更新ボタン.onclick = async function (event){
-    const タイトル   = タイトル欄.value
-    const 本文       = 本文欄.value
-    const カテゴリ   = JSON.stringify(カテゴリ欄.value.split(',').map(v=>v.trim()).filter(v=>v.length))
-    const 追加ヘッダ = 追加ヘッダ欄.value
-    
-    const data = {タイトル,本文,カテゴリ,追加ヘッダ}
-
+    const data   = 入力収集()
     const holder = Object.keys(data).map(key => `${key}=:${key}`).join()
 
     const result = await api.db(`update マスター set ${holder} where タイトル = :タイトル`, data)
