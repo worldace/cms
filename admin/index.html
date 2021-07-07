@@ -133,7 +133,7 @@ import('./my-tab.js')
 更新ボタン.onclick = async function (event){
     const タイトル   = タイトル欄.value
     const 本文       = 本文欄.value
-    const カテゴリ   = カテゴリ欄.value
+    const カテゴリ   = JSON.stringify(カテゴリ欄.value.split(',').map(v=>v.trim()).filter(v=>v.length))
     const 追加ヘッダ = 追加ヘッダ欄.value
     
     const data = {タイトル,本文,カテゴリ,追加ヘッダ}
@@ -146,7 +146,7 @@ import('./my-tab.js')
 
 mytab.addEventListener('tabopen', async function(event){
     if(event.detail === 2 && !記事一覧.list){
-        記事一覧.list = await api.db('select * from マスター order by 作成日時 desc')
+        記事一覧.list = await api.db('select * from マスター order by 作成日時 desc', null, 'table')
         記事一覧表.tBodies[0].innerHTML = 記事一覧.list.map(記事=>`
         <tr>
           <td><a href="../${encodeURIComponent(記事.タイトル)}" target="_blank">${記事.タイトル}</a></td>
@@ -222,8 +222,7 @@ async function start(){
     const query = new URLSearchParams(location.search)
     if(query.has('edit')){
         新規投稿ボタン.remove()
-        const result = await api.db('select * from マスター where タイトル = ?', query.get('edit'));
-        const data   = result[0]
+        const data = await api.db('select * from マスター where タイトル = ?', query.get('edit'), 'object');
         タイトル欄.setAttribute('readonly', true)
         タイトル欄.value = data.タイトル
         本文欄.value = data.本文

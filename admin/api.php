@@ -7,12 +7,26 @@ jrpc('api');
 
 
 class api{
-    function db(string $sql, $param = []){
+    function db(string $sql, $param = [], $return = null){
         $sqlite = new PDO('sqlite:./test.db');
         $handle = $sqlite->prepare($sql);
         $result = $handle->execute((array)$param);
 
-        return preg_match('/^select/i', $sql) ? $handle->fetchAll(PDO::FETCH_OBJ) : $result;
+        if($return === 'table'){
+            return $handle->fetchAll(PDO::FETCH_OBJ);
+        }
+        else if($return === 'object'){
+            $handle->fetch(PDO::FETCH_OBJ);
+        }
+        else if($return === 'var'){
+            $handle->fetchColumn();
+        }
+        else if($return === 'array'){
+            return $handle->fetchAll(PDO::FETCH_COLUMN);
+        }
+        else{
+            return $result;
+        }
     }
 
 
