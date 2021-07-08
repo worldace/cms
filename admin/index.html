@@ -34,14 +34,11 @@ body{
     line-height: 30px;
     font-size: 16px;
     color: #fff;
-    border: 1px solid #0077b3;
-    background-image: linear-gradient(to bottom, #0088cc, #0077b3);
-    border-radius: 5px 0 0 5px;
+    background-image: linear-gradient(to bottom, #000, #555);
     -webkit-user-select: none;
     user-select: none;
 }
 #editor input{
-    border-radius: 0 5px 5px 0;
     box-shadow: 5px 5px 5px rgba(200,200,200,0.2) inset;
     border: 1px solid #888888;
     padding: 6px 6px 3px 12px;
@@ -49,7 +46,6 @@ body{
     flex: 1;
 }
 #editor textarea{
-    border-radius: 5px;
     box-shadow: 5px 5px 5px rgba(200,200,200,0.2) inset;
     border: 1px solid #888888;
     padding: 14px 10px 5px 14px;
@@ -59,17 +55,51 @@ body{
 #タイトル欄[readonly]{
     background-color: #eee;
 }
+textarea:focus {
+    outline: none;
+}
+input:focus {
+    outline: none;
+}
 
-#新規投稿ボタン{
+
+
+.投稿ボタン{
     position: fixed;
     bottom: 10px;
     right: 10px;
+    background-image: linear-gradient(#84be5c 0% 60%, #5ba825 60% 100%);
+	text-decoration: none;
+	text-align: center;
+	padding: 5px 15px 4px 15px;
+	font-size: 16px;
+	color: #fff;
+	border: 1px solid #377d00;
+	border-radius: 5px;
+    cursor: pointer;
+    user-select: none;
 }
-#更新ボタン{
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
+.投稿ボタン:active {
+	transform: translate(0,2px);
 }
+#削除ボタン{
+    background-image: linear-gradient(#ff5c40 0% 60%, #ff2600 60% 100%);
+	text-decoration: none;
+	text-align: center;
+	padding: 5px 15px 4px 15px;
+	font-size: 16px;
+	color: #fff;
+	border: 1px solid #bf1d00;
+	border-radius: 5px;
+    cursor: pointer;
+    user-select: none;
+
+}
+#削除ボタン:active {
+	transform: translate(0,2px);
+}
+
+
 #記事一覧表 tr:hover{
     background-color: #eeffee;
 }
@@ -109,7 +139,7 @@ body{
   </section>
 </my-tab>
 
-<button id="新規投稿ボタン">新規投稿</button><button id="更新ボタン">記事更新</button>
+<button id="新規投稿ボタン" class="投稿ボタン">新規投稿</button><button id="更新ボタン" class="投稿ボタン">記事更新</button>
 
 <script type="module">
 import api from './jrpc.js'

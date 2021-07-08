@@ -37,6 +37,19 @@ class Tab extends HTMLElement{
             padding:0;
             margin:0;
             grid-area: tab;
+            background-color: #383838;
+        }
+        #tab li{
+            color: #fff;
+            padding: 10px;
+            display: block;
+            cursor: pointer;
+            font-size: 18px;
+            border-bottom: 1px solid #aaa;
+            background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.3));
+        }
+        #tab li:hover{
+            color: #8cf;
         }
         #slot{
             grid-area: content;
