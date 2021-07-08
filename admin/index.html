@@ -71,7 +71,7 @@ input:focus {
     background-image: linear-gradient(#84be5c 0% 60%, #5ba825 60% 100%);
 	text-decoration: none;
 	text-align: center;
-	padding: 5px 15px 4px 15px;
+	padding: 5px 16px;
 	font-size: 16px;
 	color: #fff;
 	border: 1px solid #377d00;
@@ -82,11 +82,29 @@ input:focus {
 .投稿ボタン:active {
 	transform: translate(0,2px);
 }
+#カテゴリ欄{
+    box-shadow: 5px 5px 5px rgba(200,200,200,0.2) inset;
+    border: 1px solid #888888;
+    padding: 6px 6px 3px 12px;
+    font-size: 14px;
+    width: 100%;
+}
+
+#追加ヘッダ欄{
+    box-shadow: 5px 5px 5px rgba(200,200,200,0.2) inset;
+    border: 1px solid #888888;
+    padding: 14px 10px 5px 14px;
+    font-size: 15px;
+    width: 100%;
+    height: 15rem;
+}
+
+
 #削除ボタン{
     background-image: linear-gradient(#ff5c40 0% 60%, #ff2600 60% 100%);
 	text-decoration: none;
 	text-align: center;
-	padding: 5px 15px 4px 15px;
+	padding: 5px 16px;
 	font-size: 16px;
 	color: #fff;
 	border: 1px solid #bf1d00;
@@ -129,6 +147,29 @@ option{
 option[selected][disabled] {
   display: none;
 }
+
+h2{
+    position: relative;
+    background: #eef1f2;
+    border: solid 1px #e1e1e1;
+    text-indent: 32px;
+    font-size: 18px;
+    padding: 8px;
+    border-radius: 5px;
+    color: #444;
+}
+h2::before {
+    position: absolute;
+    top: 25%;
+    left: 20px;
+    width: 6px;
+    height: 50%;
+    content: '';
+    opacity: 0.2;
+    border-radius: 3px;
+    background: #555;
+}
+
 </style>
 </head>
 
@@ -144,9 +185,10 @@ option[selected][disabled] {
     <div>
   </section>
   <section id="属性パネル" data-title="属性">
-    <input id="カテゴリ欄">
-    <textarea id="追加ヘッダ欄"></textarea>
-    <button id="削除ボタン">記事削除</button>
+    <h2>カテゴリ</h2><input id="カテゴリ欄">
+    <h2>追加ヘッダ</h2><textarea id="追加ヘッダ欄"></textarea>
+    <h2>URL</h2><p id="記事URL"></p>
+    <h2>記事削除</h2><button id="削除ボタン">記事削除</button>
   </section>
   <section id="記事一覧パネル" data-title="記事一覧">
     <table id="記事一覧表"><tbody></tbody></table>
@@ -158,6 +200,9 @@ option[selected][disabled] {
 </my-tab>
 
 <button id="新規投稿ボタン" class="投稿ボタン">新規投稿</button><button id="更新ボタン" class="投稿ボタン">記事更新</button>
+
+
+
 
 <script type="module">
 import api from './jrpc.js'
@@ -189,6 +234,11 @@ function 入力収集(){
 
     const result = await api.db(`update マスター set ${holder} where タイトル = :タイトル`, data)
 }
+
+
+属性パネル.addEventListener('tabopen', function(event){
+    記事URL.textContent = new URL(`../${encodeURIComponent(タイトル欄.value)}`, document.URL)
+})
 
 
 記事一覧パネル.addEventListener('tabopen', async function(event){
