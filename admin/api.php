@@ -14,9 +14,9 @@ class api{
 
         return match($return){
             'table'  => $handle->fetchAll(PDO::FETCH_OBJ),
+            'array'  => $handle->fetchAll(PDO::FETCH_COLUMN),
             'object' => $handle->fetch(PDO::FETCH_OBJ),
             'var'    => $handle->fetchColumn(),
-            'array'  => $handle->fetchAll(PDO::FETCH_COLUMN),
             default  => $result,
         };
     }
@@ -35,6 +35,14 @@ class api{
         file_put_contents("$dir/$name", $data);
 
         return UPLOAD_URL.$path;
+    }
+
+
+    function file_delete(string $path){
+        if(str_contains($path, '..')){
+            throw new Exception('不正なパス');
+        }
+        unlink(UPLOAD_DIR.$path);
     }
 
 
@@ -63,14 +71,6 @@ class api{
         }
 
         return array_values(array_filter(scandir($dir), fn($file)=>is_dir("$dir/$file") and !str_starts_with($file,'.')));
-    }
-
-
-    function file_delete(string $path){
-        if(str_contains($path, '..')){
-            throw new Exception('不正なパス');
-        }
-        unlink(UPLOAD_DIR.$path);
     }
 }
 

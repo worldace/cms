@@ -4,7 +4,7 @@ class Tab extends HTMLElement{
         benry(this)
 
         for(const el of this.children){
-            this.$tab.insertAdjacentHTML('beforeend', `<li>${el.id}</li>`)
+            this.$tab.insertAdjacentHTML('beforeend', `<li>${el.dataset.title}</li>`)
         }
     }
 
@@ -20,7 +20,7 @@ class Tab extends HTMLElement{
         for(let i = 0; i < this.children.length; i++){
             this.children[i].dataset.selected = i === index
         }
-        this.dispatchEvent(new CustomEvent('tabopen', {detail:index}))
+        this.children[index].dispatchEvent(new CustomEvent('tabopen', {detail:index,bubbles:true}))
     }
 
 

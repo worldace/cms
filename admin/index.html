@@ -89,21 +89,21 @@ body{
 
 
 <my-tab id="mytab">
-  <section id="編集" data-selected>
+  <section id="編集パネル" data-title="編集" data-selected>
     <div id="editor">
       <div><label for="タイトル欄">タイトル</label><input id="タイトル欄"></div>
       <textarea id="本文欄" spellcheck="false" placeholder="HTML"></textarea>
     <div>
   </section>
-  <section id="属性">
+  <section id="属性パネル" data-title="属性">
     <input id="カテゴリ欄">
     <textarea id="追加ヘッダ欄"></textarea>
     <button id="削除ボタン">記事削除</button>
   </section>
-  <section id="記事一覧">
+  <section id="記事一覧パネル" data-title="記事一覧">
     <table id="記事一覧表"><tbody></tbody></table>
   </section>
-  <section id="ファイル一覧">
+  <section id="ファイル一覧パネル" data-title="ファイル一覧">
     <select id="ファイル一覧月別"><option value="">📅月別ファイル一覧</option></select>
     <table id="ファイル一覧表"><tbody></tbody></table>
   </section>
@@ -143,17 +143,21 @@ function 入力収集(){
 }
 
 
-mytab.addEventListener('tabopen', async function(event){
-    if(event.detail === 2 && !記事一覧.list){
-        記事一覧.list = await api.db('select * from マスター order by 作成日時 desc', null, 'table')
-        記事一覧表.tBodies[0].innerHTML = 記事一覧.list.map(記事=>`
+記事一覧パネル.addEventListener('tabopen', async function(event){
+    if(!記事一覧表.list){
+        記事一覧表.list = await api.db('select * from マスター order by 作成日時 desc', null, 'table')
+        記事一覧表.tBodies[0].innerHTML = 記事一覧表.list.map(記事=>`
         <tr>
           <td><a href="../${encodeURIComponent(記事.タイトル)}" target="_blank">${記事.タイトル}</a></td>
           <td><a href="./?edit=${encodeURIComponent(記事.タイトル)}" target="_blank" title="編集">📝</a></td>
         </tr>
         `).join('')
     }
-    else if(event.detail === 3 && !ファイル一覧月別.list){
+})
+
+
+ファイル一覧パネル.addEventListener('tabopen', async function(event){
+    if(!ファイル一覧月別.list){
         ファイル一覧月別.list = await api.dir_list('/')
         ファイル一覧月別.innerHTML += ファイル一覧月別.list.map(dir =>`<option value="${dir}">${dir.replace(/^(....)/, '$1-')}</option>`).join('')
     }
