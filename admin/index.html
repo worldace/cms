@@ -31,12 +31,12 @@ body{
 #editor label{
     width: 100px;
     text-align: center;
-    line-height: 30px;
+    line-height: 32px;
     font-size: 16px;
-    color: #fff;
-    background-image: linear-gradient(to bottom, #000, #555);
-    -webkit-user-select: none;
+    color: #111;
+	background-image: linear-gradient(to bottom, #eee, #ccc);
     user-select: none;
+    text-shadow: 2px 0px 0px #eee, -2px 0px 0px #eee, 0px 2px 0px #eee, 0px -2px 0px #eee, 1px 1px 0.5px #eee, -1px -1px 0.5px #eee, 1px -1px 0.5px #eee, -1px 1px 0.5px #eee;
 }
 #editor input{
     box-shadow: 5px 5px 5px rgba(200,200,200,0.2) inset;
@@ -101,15 +101,33 @@ input:focus {
 
 
 #記事一覧表 tr:hover{
-    background-color: #eeffee;
+    background-color: #8cf;
 }
 
 #ファイル一覧表 tr:hover{
-    background-color: #eeffee;
+    background-color: #8cf;
 }
 #ファイル一覧表 span{
     user-select: none;
     cursor: pointer;
+}
+
+select{
+	padding: 10px;
+	border: 1px solid #999;
+	background: #eee;
+	background-image: linear-gradient(#fff 0%,#efebe1 100%);
+    font-size: 18px;
+}
+select:focus {
+    outline: none;
+}
+option{
+    font-size: 20px;
+    color: #383838;
+}
+option[selected][disabled] {
+  display: none;
 }
 </style>
 </head>
@@ -134,7 +152,7 @@ input:focus {
     <table id="記事一覧表"><tbody></tbody></table>
   </section>
   <section id="ファイル一覧パネル" data-title="ファイル一覧">
-    <select id="ファイル一覧月別"><option value="">📅月別ファイル一覧</option></select>
+    <select id="ファイル一覧月別"><option value="" disabled selected>📅月別ファイル一覧</option></select>
     <table id="ファイル一覧表"><tbody></tbody></table>
   </section>
 </my-tab>
