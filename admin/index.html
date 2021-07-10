@@ -169,6 +169,10 @@ h2::before {
     border-radius: 3px;
     background: #555;
 }
+iframe{
+    width: 100%;
+    height: 100%;
+}
 
 </style>
 </head>
@@ -189,6 +193,9 @@ h2::before {
     <h2>追加ヘッダ</h2><textarea id="追加ヘッダ欄"></textarea>
     <h2>URL</h2><p id="記事URL"></p>
     <h2>記事削除</h2><button id="削除ボタン">記事削除</button>
+  </section>
+  <section id="プレビュー" data-title="プレビュー">
+    <iframe id="iframe" src="../template/preview.html"></iframe>
   </section>
   <section id="記事一覧パネル" data-title="記事一覧">
     <table id="記事一覧表"><tbody></tbody></table>
@@ -236,6 +243,15 @@ function 入力収集(){
 }
 
 
+プレビュー.addEventListener('tabopen', function(event){
+    if(!iframe.originalHead){
+        iframe.originalHead = iframe.contentDocument.head.innerHTML
+    }
+    iframe.contentDocument.head.innerHTML = iframe.originalHead + 追加ヘッダ欄.value
+    iframe.contentDocument.body.innerHTML = 本文欄.value
+})
+
+
 属性パネル.addEventListener('tabopen', function(event){
     記事URL.textContent = new URL(`../${encodeURIComponent(タイトル欄.value)}`, document.URL)
 })
@@ -246,8 +262,8 @@ function 入力収集(){
         記事一覧表.list = await api.db('select * from マスター order by 作成日時 desc', null, 'table')
         記事一覧表.tBodies[0].innerHTML = 記事一覧表.list.map(記事=>`
         <tr>
-          <td><a href="../${encodeURIComponent(記事.タイトル)}" target="_blank">${記事.タイトル}</a></td>
           <td><a href="./?edit=${encodeURIComponent(記事.タイトル)}" target="_blank" title="編集">📝</a></td>
+          <td><a href="../${encodeURIComponent(記事.タイトル)}" target="_blank">${記事.タイトル}</a></td>
         </tr>
         `).join('')
     }

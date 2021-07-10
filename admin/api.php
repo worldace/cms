@@ -8,17 +8,7 @@ jrpc('api');
 
 class api{
     function db(string $sql, $param = [], $return = null){
-        $sqlite = new PDO('sqlite:./test.db');
-        $handle = $sqlite->prepare($sql);
-        $result = $handle->execute((array)$param);
-
-        return match($return){
-            'table'  => $handle->fetchAll(PDO::FETCH_OBJ),
-            'array'  => $handle->fetchAll(PDO::FETCH_COLUMN),
-            'object' => $handle->fetch(PDO::FETCH_OBJ),
-            'var'    => $handle->fetchColumn(),
-            default  => $result,
-        };
+        return db($sql, $param, $return);
     }
 
 

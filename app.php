@@ -1,17 +1,25 @@
 <?php
 
-const DB_FILE = './admin/test.db';
-const UPLOAD_URL = 'http://127.0.0.1/cms/upload/';
-const UPLOAD_DIR = __DIR__.'/upload/';
+const URL        = 'http://127.0.0.1/cms/';
+const PATH       = __DIR__.'/';
+const DB_FILE    = PATH.'admin/test.db';
+const UPLOAD_DIR = PATH.'upload/';
+const UPLOAD_URL = URL.'upload/';
 const ID = ['admin'=>'neko'];
 
 
-function db(string $sql, $param = []){
+function db(string $sql, $param = [], $return = null){
     $sqlite = new PDO('sqlite:'.DB_FILE);
     $handle = $sqlite->prepare($sql);
     $result = $handle->execute((array)$param);
 
-    return preg_match('/^select/i', $sql) ? $handle->fetchAll(PDO::FETCH_OBJ) : $result;
+    return match($return){
+        'table'  => $handle->fetchAll(PDO::FETCH_OBJ),
+        'array'  => $handle->fetchAll(PDO::FETCH_COLUMN),
+        'object' => $handle->fetch(PDO::FETCH_OBJ),
+        'var'    => $handle->fetchColumn(),
+        default  => $result,
+    };
 }
 
 
