@@ -27,7 +27,7 @@ function jrpc(string $class) :void{
     try{
         $json = json_decode(file_get_contents('php://input'));
 
-        if(!isset($json->fn) or preg_match('/^__/', $json->fn)){
+        if(preg_match('/^__/', $json->fn)){
             throw new Exception('不正なアクセスです。');
         }
 
