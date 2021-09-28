@@ -1,5 +1,5 @@
 
-class Tab extends HTMLElement{
+class MyTab extends HTMLElement{
     connectedCallback(){
         benry(this)
 
@@ -95,4 +95,4 @@ function benry(self, attr = []){ // https://qiita.com/economist/items/6c923c255f
 }
 
 
-customElements.define('my-tab', Tab)
+customElements.define('my-tab', MyTab)

@@ -12,19 +12,19 @@ class api{
     }
 
 
-    function file_save(string $path, string $data){
-        ['dirname'=>$dir, 'basename'=>$name] = pathinfo(UPLOAD_DIR.$path);
+    function file_save(string $filename, string $data){
+        $ym   = date('Ym');
+        $dir  = UPLOAD_DIR . $ym;
+        $ext  = pathinfo($filename, PATHINFO_EXTENSION);
+        $file = $ext ? uniqid() . ".$ext" : uniqid();
 
-        if(str_contains($path, '..')){
-            throw new Exception('不正なパス');
-        }
         if(!is_dir($dir)){
             mkdir($dir, 0777, true);
         }
 
-        file_put_contents("$dir/$name", $data);
+        file_put_contents("$dir/$file", $data);
 
-        return UPLOAD_URL.$path;
+        return UPLOAD_URL."$ym/$file";
     }
 
 

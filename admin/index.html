@@ -64,7 +64,8 @@ input:focus {
 
 
 
-.投稿ボタン{
+#新規投稿ボタン,
+#更新ボタン{
     position: fixed;
     bottom: 10px;
     right: 10px;
@@ -79,7 +80,8 @@ input:focus {
     cursor: pointer;
     user-select: none;
 }
-.投稿ボタン:active {
+#新規投稿ボタン:active,
+#更新ボタン:active {
 	transform: translate(0,2px);
 }
 #カテゴリ欄{
@@ -186,7 +188,7 @@ iframe{
     <div id="editor">
       <div><label for="タイトル欄">タイトル</label><input id="タイトル欄"></div>
       <textarea id="本文欄" spellcheck="false" placeholder="HTML"></textarea>
-    <div>
+    </div>
   </section>
   <section id="属性パネル" data-title="属性">
     <h2>カテゴリ</h2><input id="カテゴリ欄">
@@ -201,28 +203,26 @@ iframe{
     <table id="記事一覧表"><tbody></tbody></table>
   </section>
   <section id="ファイル一覧パネル" data-title="ファイル一覧">
-    <select id="ファイル一覧月別"><option value="" disabled selected>📅月別ファイル一覧</option></select>
+    <select id="ファイル一覧月別"></select>
     <table id="ファイル一覧表"><tbody></tbody></table>
   </section>
 </my-tab>
 
-<button id="新規投稿ボタン" class="投稿ボタン">新規投稿</button><button id="更新ボタン" class="投稿ボタン">記事更新</button>
-
+<button id="新規投稿ボタン">新規投稿</button>
+<button id="更新ボタン">記事更新</button>
 
 
 
 <script type="module">
 import api from './jrpc.js'
-import('./my-tab.js')
-
 
 function 入力収集(){
-    const タイトル   = タイトル欄.value
-    const 本文       = 本文欄.value
-    const カテゴリ   = JSON.stringify(カテゴリ欄.value.split(',').map(v=>v.trim()).filter(v=>v.length))
-    const 追加ヘッダ = 追加ヘッダ欄.value
-
-    return {タイトル,本文,カテゴリ,追加ヘッダ}
+    return {
+        タイトル   : タイトル欄.value,
+        本文       : 本文欄.value,
+        追加ヘッダ : 追加ヘッダ欄.value,
+        カテゴリ   : JSON.stringify(カテゴリ欄.value.split(',').map(v=>v.trim()).filter(v=>v.length))
+    }
 }
 
 
@@ -244,10 +244,7 @@ function 入力収集(){
 
 
 プレビュー.addEventListener('tabopen', function(event){
-    if(!iframe.originalHead){
-        iframe.originalHead = iframe.contentDocument.head.innerHTML
-    }
-    iframe.contentDocument.head.innerHTML = iframe.originalHead + 追加ヘッダ欄.value
+    iframe.contentDocument.head.innerHTML = iframe.元のヘッダ + 追加ヘッダ欄.value
     iframe.contentDocument.body.innerHTML = 本文欄.value
 })
 
@@ -258,50 +255,46 @@ function 入力収集(){
 
 
 記事一覧パネル.addEventListener('tabopen', async function(event){
-    if(!記事一覧表.list){
-        記事一覧表.list = await api.db('select * from マスター order by 作成日時 desc', null, 'table')
-        記事一覧表.tBodies[0].innerHTML = 記事一覧表.list.map(記事=>`
-        <tr>
-          <td><a href="./?edit=${encodeURIComponent(記事.タイトル)}" target="_blank" title="編集">📝</a></td>
-          <td><a href="../${encodeURIComponent(記事.タイトル)}" target="_blank">${記事.タイトル}</a></td>
-        </tr>
-        `).join('')
-    }
+
+    const 記事一覧 = await api.db('select * from マスター order by 作成日時 desc', null, 'table')
+
+    記事一覧表.tBodies[0].innerHTML = 記事一覧.map( 記事 => `
+      <tr>
+        <td><a href="./?edit=${encodeURIComponent(記事.タイトル)}" target="_blank" title="編集">📝</a></td>
+        <td><a href="../${encodeURIComponent(記事.タイトル)}" target="_blank">${記事.タイトル}</a></td>
+      </tr>
+    `).join('')
 })
 
 
 ファイル一覧パネル.addEventListener('tabopen', async function(event){
-    if(!ファイル一覧月別.list){
-        ファイル一覧月別.list = await api.dir_list('/')
-        ファイル一覧月別.innerHTML += ファイル一覧月別.list.map(dir =>`<option value="${dir}">${dir.replace(/^(....)/, '$1-')}</option>`).join('')
-    }
+
+    ファイル一覧月別.innerHTML = '<option hidden>📅月別ファイル一覧</option>' + (await api.dir_list()).map( ym => `
+      <option value="${ym}">${ym.replace(/(....)(..)/, '$1-$2')}</option>
+    `).join('')
 })
 
 
 ファイル一覧月別.onchange = async function (event){
-    if(!this.value){
-        return
-    }
-    const files = await api.file_list(this.value)
-    ファイル一覧表.tBodies[0].innerHTML = files.map(file=>`
-    <tr data-path="${this.value}/${file}">
-      <td><a href="../upload/${this.value}/${file}" target="_blank">${file}</td>
-      <td><span>&#10006;</span></td>
-    </tr>
+
+    ファイル一覧表.tBodies[0].innerHTML = (await api.file_list(this.value)).map( file => `
+      <tr data-path="${this.value}/${file}">
+        <td><a href="../upload/${this.value}/${file}" target="_blank">${file}</td>
+        <td><span>&#10006;</span></td>
+      </tr>
     `).join('')
 }
 
 
 ファイル一覧表.onclick = async function (event){
-    if(event.target.tagName !== 'SPAN'){
+    if(event.target.tagName !== 'SPAN' || !confirm('このファイルを削除しますか？')){
         return
     }
+
     const tr = event.target.closest('tr')
-    if(confirm('このファイルを削除しますか？')){
-        await api.file_delete(tr.dataset.path)
-        await tr.animate({opacity:0}, 300).finished
-        tr.remove()
-    }
+    await api.file_delete(tr.dataset.path)
+    await tr.animate({opacity:0}, 300).finished
+    tr.remove()
 }
 
 
@@ -309,7 +302,7 @@ function 入力収集(){
     event.preventDefault()
 
     for(const file of event.dataTransfer.files){
-        const url = await api.file_save(file_path(file.name), file)
+        const url = await api.file_save(file.name, file)
         console.dir(url)
     }
 }
@@ -319,33 +312,23 @@ document.body.ondragover = function(event){
     event.preventDefault()
 }
 
-function file_path(name){
-    const d  = new Date()
-    const 年 = `${d.getFullYear()}`
-    const 月 = `0${d.getMonth()+1}`.slice(-2)
-    const 日 = `0${d.getDate()}`.slice(-2)
-    const 時 = `0${d.getHours()}`.slice(-2)
-    const 分 = `0${d.getMinutes()}`.slice(-2)
-    const 秒 = `0${d.getSeconds()}`.slice(-2)
-    const ミリ秒 = `00${d.getMilliseconds()}`.slice(-3)
-
-    const pos = name.lastIndexOf('.')
-    const ext = pos !== -1 ? name.slice(pos) : ''
-    
-    return `${年}${月}/${年}${月}${日}${時}${分}${秒}${ミリ秒}${ext}`
-}
 
 async function start(){
+    await import('./my-tab.js')
+    iframe.元のヘッダ = iframe.contentDocument.head.innerHTML
+
     const query = new URLSearchParams(location.search)
+
     if(query.has('edit')){
         新規投稿ボタン.remove()
         const data = await api.db('select * from マスター where タイトル = ?', query.get('edit'), 'object');
-        タイトル欄.setAttribute('readonly', true)
         タイトル欄.value = data.タイトル
         本文欄.value = data.本文
         カテゴリ欄.value = JSON.parse(data.カテゴリ).join(',')
         追加ヘッダ欄.value = data.追加ヘッダ
+
         document.title = `「${data.タイトル}」の編集`
+        タイトル欄.readOnly = true
         本文欄.focus()
     }
     else{
