@@ -216,30 +216,30 @@ iframe{
 <script type="module">
 import api from './jrpc.js'
 
-function 入力収集(){
-    return {
-        タイトル   : タイトル欄.value,
-        本文       : 本文欄.value,
-        追加ヘッダ : 追加ヘッダ欄.value,
-        カテゴリ   : JSON.stringify(カテゴリ欄.value.split(',').map(v=>v.trim()).filter(v=>v.length))
+class 入力収集{
+    constructor(){
+        this.タイトル   = タイトル欄.value
+        this.本文       = 本文欄.value
+        this.追加ヘッダ = 追加ヘッダ欄.value
+        this.カテゴリ   = JSON.stringify(カテゴリ欄.value.split(',').map(v=>v.trim()).filter(v=>v.length))
+    }
+
+    format(fn){
+        return Object.keys(this).map(fn).join()
     }
 }
 
 
-新規投稿ボタン.onclick = async function (event){
-    const data    = 入力収集()
-    const holder1 = Object.keys(data).join()
-    const holder2 = Object.keys(data).map(key => `:${key}`).join()
 
-    const result = await api.db(`insert into マスター (${holder1}) values (${holder2})`, data)
+新規投稿ボタン.onclick = async function (event){
+    const data   = new 入力収集()
+    const result = await api.db(`insert into マスター (${data.format(k => k)}) values (${data.format(k => `:${k}`)})`, data)
 }
 
 
 更新ボタン.onclick = async function (event){
-    const data   = 入力収集()
-    const holder = Object.keys(data).map(key => `${key}=:${key}`).join()
-
-    const result = await api.db(`update マスター set ${holder} where タイトル = :タイトル`, data)
+    const data   = new 入力収集()
+    const result = await api.db(`update マスター set ${data.format(k => `${k}=:${k}`)} where タイトル = :タイトル`, data)
 }
 
 
@@ -293,7 +293,7 @@ function 入力収集(){
 
     const tr = event.target.closest('tr')
     await api.file_delete(tr.dataset.path)
-    await tr.animate({opacity:0}, 300).finished
+    await tr.animate({opacity:0}, 500).finished
     tr.remove()
 }
 
