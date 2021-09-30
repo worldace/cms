@@ -212,7 +212,7 @@ iframe{
 <button id="更新ボタン">記事更新</button>
 
 
-
+<script src="./my-tab.js" type="module"></script>
 <script type="module">
 import api from './jrpc.js'
 
@@ -244,6 +244,7 @@ class 入力収集{
 
 
 プレビュー.addEventListener('tabopen', function(event){
+    iframe.元のヘッダ ??= iframe.contentDocument.head.innerHTML
     iframe.contentDocument.head.innerHTML = iframe.元のヘッダ + 追加ヘッダ欄.value
     iframe.contentDocument.body.innerHTML = 本文欄.value
 })
@@ -314,9 +315,6 @@ document.body.ondragover = function(event){
 
 
 async function start(){
-    await import('./my-tab.js')
-    iframe.元のヘッダ = iframe.contentDocument.head.innerHTML
-
     const query = new URLSearchParams(location.search)
 
     if(query.has('edit')){
