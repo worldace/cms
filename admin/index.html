@@ -214,7 +214,7 @@ iframe{
 
 <script src="./my-tab.js" type="module"></script>
 <script type="module">
-import api from './jrpc.js'
+import API from './jrpc.js'
 
 class 入力収集{
     constructor(){
@@ -233,13 +233,13 @@ class 入力収集{
 
 新規投稿ボタン.onclick = async function (event){
     const data   = new 入力収集()
-    const result = await api.db(`insert into マスター (${data.join(k => k)}) values (${data.join(k => `:${k}`)})`, data)
+    const result = await API.DB(`insert into マスター (${data.join(k => k)}) values (${data.join(k => `:${k}`)})`, data)
 }
 
 
 更新ボタン.onclick = async function (event){
     const data   = new 入力収集()
-    const result = await api.db(`update マスター set ${data.join(k => `${k}=:${k}`)} where タイトル = :タイトル`, data)
+    const result = await API.DB(`update マスター set ${data.join(k => `${k}=:${k}`)} where タイトル = :タイトル`, data)
 }
 
 
@@ -257,7 +257,7 @@ class 入力収集{
 
 記事一覧パネル.addEventListener('tabopen', async function(event){
 
-    const 記事一覧 = await api.db('select * from マスター order by 作成日時 desc', null, 'table')
+    const 記事一覧 = await API.DB('select * from マスター order by 作成日時 desc', null, 'table')
 
     記事一覧表.tBodies[0].innerHTML = 記事一覧.map( 記事 => `
       <tr>
@@ -270,7 +270,7 @@ class 入力収集{
 
 ファイル一覧パネル.addEventListener('tabopen', async function(event){
 
-    ファイル一覧月別.innerHTML = '<option hidden>📅月別ファイル一覧</option>' + (await api.dir_list()).map( monthly => `
+    ファイル一覧月別.innerHTML = '<option hidden>📅月別ファイル一覧</option>' + (await API.DirList()).map( monthly => `
       <option value="${monthly}">${monthly.replace(/(....)(..)/, '$1-$2')}</option>
     `).join('')
 })
@@ -278,7 +278,7 @@ class 入力収集{
 
 ファイル一覧月別.onchange = async function (event){
 
-    ファイル一覧表.tBodies[0].innerHTML = (await api.file_list(this.value)).map( file => `
+    ファイル一覧表.tBodies[0].innerHTML = (await API.FileList(this.value)).map( file => `
       <tr data-path="${this.value}/${file}">
         <td><a href="../upload/${this.value}/${file}" target="_blank">${file}</td>
         <td><span>&#10006;</span></td>
@@ -293,7 +293,7 @@ class 入力収集{
     }
 
     const tr = event.target.closest('tr')
-    await api.file_delete(tr.dataset.path)
+    await API.FileDelete(tr.dataset.path)
     await tr.animate({opacity:0}, 500).finished
     tr.remove()
 }
@@ -303,7 +303,7 @@ class 入力収集{
     event.preventDefault()
 
     for(const file of event.dataTransfer.files){
-        const url = await api.file_save(file.name, file)
+        const url = await API.FileSave(file.name, file)
         console.dir(url)
     }
 }
@@ -318,7 +318,7 @@ async function start(){
     const query = new URLSearchParams(location.search)
 
     if(query.has('edit')){
-        const data          = await api.db('select * from マスター where タイトル = ?', query.get('edit'), 'object');
+        const data          = await API.DB('select * from マスター where タイトル = ?', query.get('edit'), 'object');
         タイトル欄.value    = data.タイトル
         タイトル欄.readOnly = true
         本文欄.value        = data.本文

@@ -3,16 +3,16 @@
 include_once '../app.php';
 
 
-jrpc('api');
+jrpc('API');
 
 
-class api{
-    function db(string $sql, $param = [], $return = null){
+class API{
+    function DB(string $sql, $param = [], $return = null){
         return db($sql, $param, $return);
     }
 
 
-    function file_save(string $filename, string $data){
+    function FileSave(string $filename, string $data){
         $ym   = date('Ym');
         $dir  = UPLOAD_DIR . $ym;
         $ext  = pathinfo($filename, PATHINFO_EXTENSION);
@@ -28,7 +28,7 @@ class api{
     }
 
 
-    function file_delete(string $path){
+    function FileDelete(string $path){
         if(str_contains($path, '..')){
             throw new Exception('不正なパス');
         }
@@ -36,7 +36,7 @@ class api{
     }
 
 
-    function file_list(string $path){
+    function FileList(string $path){
         $dir = UPLOAD_DIR.$path;
 
         if(str_contains($path, '..')){
@@ -50,7 +50,7 @@ class api{
     }
 
 
-    function dir_list(string $path = './'){
+    function DirList(string $path = './'){
         $dir = UPLOAD_DIR.$path;
 
         if(str_contains($path, '..')){

@@ -1,11 +1,11 @@
 
 class Toast extends HTMLElement{
 
-    timeout = 5000       //何ミリ秒表示するか。0で無限
-    closeButton = true   //閉じるボタンを表示するかどうか
-    x = 'right'          //トーストの表示位置X。'right','left','center'
-    y = 'top'            //トーストの表示位置Y。'top', 'bottom'
-    onEnd = function(){} //トーストが消えた後に実行する関数
+    timeout     = 5000         //何ミリ秒表示するか。0で無限
+    closeButton = true         //閉じるボタンを表示するかどうか
+    x           = 'right'      //トーストの表示位置X。'right','left','center'
+    y           = 'top'        //トーストの表示位置Y。'top', 'bottom'
+    onEnd       = function(){} //トーストが消えた後に実行する関数
 
 
     connectedCallback(){
@@ -53,8 +53,8 @@ class Toast extends HTMLElement{
 
         for(const el of this.parent.children) {
             if(el.tagName === this.tagName){
-                const height = el.offsetHeight
-                el.style[el.y] = offset[el.x][el.y] + 'px'
+                const height        = el.offsetHeight
+                el.style[el.y]      = offset[el.x][el.y] + 'px'
                 offset[el.x][el.y] += height + margin
             }
         }
