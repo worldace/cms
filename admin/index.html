@@ -224,7 +224,7 @@ class 入力収集{
         this.カテゴリ   = JSON.stringify(カテゴリ欄.value.split(',').map(v=>v.trim()).filter(v=>v.length))
     }
 
-    format(fn){
+    join(fn){
         return Object.keys(this).map(fn).join()
     }
 }
@@ -233,13 +233,13 @@ class 入力収集{
 
 新規投稿ボタン.onclick = async function (event){
     const data   = new 入力収集()
-    const result = await api.db(`insert into マスター (${data.format(k => k)}) values (${data.format(k => `:${k}`)})`, data)
+    const result = await api.db(`insert into マスター (${data.join(k => k)}) values (${data.join(k => `:${k}`)})`, data)
 }
 
 
 更新ボタン.onclick = async function (event){
     const data   = new 入力収集()
-    const result = await api.db(`update マスター set ${data.format(k => `${k}=:${k}`)} where タイトル = :タイトル`, data)
+    const result = await api.db(`update マスター set ${data.join(k => `${k}=:${k}`)} where タイトル = :タイトル`, data)
 }
 
 
@@ -270,8 +270,8 @@ class 入力収集{
 
 ファイル一覧パネル.addEventListener('tabopen', async function(event){
 
-    ファイル一覧月別.innerHTML = '<option hidden>📅月別ファイル一覧</option>' + (await api.dir_list()).map( ym => `
-      <option value="${ym}">${ym.replace(/(....)(..)/, '$1-$2')}</option>
+    ファイル一覧月別.innerHTML = '<option hidden>📅月別ファイル一覧</option>' + (await api.dir_list()).map( monthly => `
+      <option value="${monthly}">${monthly.replace(/(....)(..)/, '$1-$2')}</option>
     `).join('')
 })
 
@@ -318,15 +318,14 @@ async function start(){
     const query = new URLSearchParams(location.search)
 
     if(query.has('edit')){
-        新規投稿ボタン.remove()
-        const data = await api.db('select * from マスター where タイトル = ?', query.get('edit'), 'object');
-        タイトル欄.value = data.タイトル
-        本文欄.value = data.本文
-        カテゴリ欄.value = JSON.parse(data.カテゴリ).join(',')
-        追加ヘッダ欄.value = data.追加ヘッダ
-
-        document.title = `「${data.タイトル}」の編集`
+        const data          = await api.db('select * from マスター where タイトル = ?', query.get('edit'), 'object');
+        タイトル欄.value    = data.タイトル
         タイトル欄.readOnly = true
+        本文欄.value        = data.本文
+        カテゴリ欄.value    = JSON.parse(data.カテゴリ).join()
+        追加ヘッダ欄.value  = data.追加ヘッダ
+        document.title      = `「${data.タイトル}」の編集`
+        新規投稿ボタン.remove()
         本文欄.focus()
     }
     else{

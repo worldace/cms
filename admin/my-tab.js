@@ -17,10 +17,13 @@ class MyTab extends HTMLElement{
 
 
     open(index = 0){
-        for(let i = 0; i < this.children.length; i++){
-            this.children[i].dataset.selected = i === index
+        const target = this.children[index]
+
+        for(const el of this.children){
+            el.dataset.selected = el === target
         }
-        this.children[index].dispatchEvent(new CustomEvent('tabopen', {detail:index,bubbles:true}))
+
+        target.dispatchEvent(new CustomEvent('tabopen', {detail:index,bubbles:true}))
     }
 
 
